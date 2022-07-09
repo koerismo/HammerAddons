@@ -66,6 +66,12 @@ async def main(argv: List[str]) -> None:
         action="store_true",
         help="Write all props without propcombine groups to a new VMF.",
     )
+    parser.add_argument(
+        "--post-vrad",
+        dest="post_vrad",
+        action="store_true",
+        help="Run any transforms that modify the map after VRAD.",
+    )
 
     parser.add_argument(
         "map",
@@ -177,7 +183,15 @@ async def main(argv: List[str]) -> None:
         game_info,
         studiomdl_loc,
         transform_conf,
+        args.post_vrad
     )
+
+    if args.post_vrad:
+        LOGGER.info('Post-vrad transforms finished. Writing BSP...')
+        bsp_file.save()
+
+        LOGGER.info('HammerAddons post-vrad transforms complete!')
+        return
 
     if studiomdl_loc is not None and args.propcombine:
         decomp_cache_path = conf.get(str, 'propcombine_cache')

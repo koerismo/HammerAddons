@@ -94,13 +94,14 @@ TransFunc = Callable[[Context], Awaitable[None]]
 TransFuncOrSync = Callable[[Context], Optional[Awaitable[None]]]
 TRANSFORMS: Dict[str, TransFunc] = {}
 TRANSFORM_PRIORITY: Dict[str, int] = {}
+TRANSFORM_STAGE: Dict[str, bool] = {}
 
-
-def trans(name: str, *, priority: int=0) -> Callable[[TransFuncOrSync], TransFunc]:
+def trans(name: str, *, priority: int=0, post_vrad: bool=False) -> Callable[[TransFuncOrSync], TransFunc]:
     """Add a transformation procedure to the list."""
     def deco(func: TransFuncOrSync) -> TransFunc:
         """Stores the transformation."""
         TRANSFORM_PRIORITY[name] = priority
+        TRANSFORM_STAGE[name] = post_vrad
         if inspect.iscoroutinefunction(func):
             TRANSFORMS[name] = func  # type: ignore # inspect needs typeguard
             return func  # type: ignore # ^^^
@@ -122,6 +123,7 @@ async def run_transformations(
     game: Game,
     studiomdl_loc: Path=None,
     config: Mapping[str, Property]=EmptyMapping,
+	post_vrad: bool=False,
 ) -> None:
     """Run all transformations."""
     context = Context(filesys, vmf, pack, bsp, game, studiomdl_loc=studiomdl_loc)
@@ -130,6 +132,7 @@ async def run_transformations(
         TRANSFORMS.items(),
         key=lambda tup: TRANSFORM_PRIORITY[tup[0]],
     ):
+        if TRANSFORM_STAGE[func_name] != post_vrad: continue
         LOGGER.info('Running "{}"...', func_name)
         try:
             context.config = config[func_name.casefold()]
@@ -137,6 +140,9 @@ async def run_transformations(
             context.config = Property(func_name, [])
         LOGGER.debug('Config: {!r}', context.config)
         await func(context)
+
+    # If running after VRAD, the following should have already been done.
+    if post_vrad: return
 
     if context._ent_code:
         LOGGER.info('Injecting VScript code...')
