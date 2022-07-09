@@ -17,5 +17,7 @@
 		[
 		1: "Initially dark" : 0
 		]
+	
+	onlylightworld(boolean) : "Only Light World" : 0 : "Remove this entity after the lighting is calculated, leaving only the baked lighting. This can be used to prevent unwanted lighting on dynamic props. Note: The postcompiler must be run again after VRAD for this feature to function correctly!"
 
 	]
