@@ -1,8 +1,8 @@
 ''' Removes light entities flaged by the user. '''
 
-from srctools import conv_bool
+from srctools import Vec, conv_bool
 from srctools.bsp import BSP_LUMPS
-from bsp_transform import trans, Context
+from hammeraddons.bsp_transform import trans, Context
 from srctools.logger import get_logger
 import struct
 
@@ -20,13 +20,14 @@ class worldlight():
 	def __init__( self, raw ):
 		self._raw = raw
 
-		self.origin = (0,0,0)
-		self.intensity = (0,0,0)
-		self.normal = (0,0,0)
+		self.origin = Vec()
+		self.intensity = Vec()
+		self.normal = Vec()
 		
-		(*self.origin,			# Vec
-		*self.intensity,		# Vec
-		*self.normal,			# Vec
+		(
+		self.origin.x,    self.origin.y,    self.origin.z,		# Vec
+		self.intensity.x, self.intensity.y, self.intensity.z,	# Vec
+		self.normal.x,    self.normal.y,    self.normal.z,		# Vec
 
 		self.cluster,			# int
 		self.emittype,			# int
@@ -49,9 +50,9 @@ class worldlight():
 
 	def pack( self ):
 		return wlight_struct.pack(
-		*self.origin,			# Vec
-		*self.intensity,		# Vec
-		*self.normal,			# Vec
+		*tuple(self.origin),	# Vec
+		*tuple(self.intensity),	# Vec
+		*tuple(self.normal),	# Vec
 
 		self.cluster,			# int
 		self.emittype,			# int
